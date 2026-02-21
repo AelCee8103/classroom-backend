@@ -8,10 +8,13 @@ import {db} from '../db';
 //Get all subjects with optional search, filtering and pagination
 router.get('/',async (req, res) => {
     try{
-        const {search,department, page=1, limit=10} = req.query;
+        const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+        const department = typeof req.query.department === 'string' ? req.query.department : undefined;
+        const page = req.query.page;
+        const limit = req.query.limit;
 
-            const currentPage = Math.max(1, Number(page) || 1);
-            const limitPerPage = Math.max(1, Math.min(100, Number(limit) || 10));
+        const currentPage = Math.max(1, Number(page) || 1);
+        const limitPerPage = Math.max(1, Math.min(100, Number(limit) || 10));
 
         const offset = (currentPage - 1) * limitPerPage;
 
@@ -27,8 +30,7 @@ router.get('/',async (req, res) => {
             )
         }
 
-        //If a department filter exists, match the department name
-        if (department){
+        if (department) {
             filterConditions.push(ilike(departments.name, `%${department}%`));
         }
 
