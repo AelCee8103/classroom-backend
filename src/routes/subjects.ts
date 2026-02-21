@@ -10,9 +10,10 @@ router.get('/',async (req, res) => {
     try{
         const {search,department, page=1, limit=10} = req.query;
 
-        const currentPage= Math.max(1, +page);
-        const limitperPage = Math.max(1, +limit);
-        const offset = (currentPage - 1) * limitperPage;
+            const currentPage = Math.max(1, Number(page) || 1);
+            const limitPerPage = Math.max(1, Math.min(100, Number(limit) || 10));
+
+        const offset = (currentPage - 1) * limitPerPage;
 
         const filterConditions = [];
 
@@ -20,15 +21,15 @@ router.get('/',async (req, res) => {
 
         if (search){
             filterConditions.push(or(
-                ilike(subjects.name, `%${search}$`),
-                ilike(subjects.code, `%${search}$`)
+                ilike(subjects.name, `%${search}%`),
+                ilike(subjects.code, `%${search}%`)
                 )
             )
         }
 
         //If a department filter exists, match the department name
         if (department){
-            filterConditions.push(ilike(departments.name, `%${department}$`));
+            filterConditions.push(ilike(departments.name, `%${department}%`));
         }
 
 
@@ -40,7 +41,7 @@ router.get('/',async (req, res) => {
             .leftJoin(departments, eq(subjects.departmentId,departments.id))
             .where(whereClause);
 
-        const totalCount =countResult[0]?.count ?? 0;
+        const totalCount = Number(countResult[0]?.count) || 0;
         const subjectsList = await db.select(
                 {...getTableColumns(subjects),
                 departments:{...getTableColumns(departments)
@@ -49,16 +50,16 @@ router.get('/',async (req, res) => {
         ).from(subjects).leftJoin(departments, eq (subjects.departmentId,departments.id))
             .where(whereClause)
             .orderBy(desc(subjects.createdAt))
-            .limit(limitperPage)
+            .limit(limitPerPage)
             .offset(offset);
 
         res.status(200).json({
             data: subjectsList,
             pagination: {
                 page: currentPage,
-                limit: limitperPage,
+                limit: limitPerPage,
                 total: totalCount,
-                totalPages: Math.ceil(totalCount / limitperPage)
+                totalPages: Math.ceil(totalCount / limitPerPage)
             }
         });
 

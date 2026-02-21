@@ -1,12 +1,17 @@
-import { eq } from 'drizzle-orm';
-// The 'pool' export will only exist for WebSocket and node-postgres drivers
-// @ts-ignore
 import express from 'express';
 import cors from 'cors';
-
+import 'dotenv/config';
 import subjectsRouter from './routes/subjects';
 const app = express();
 const PORT = 8000;
+
+
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+if (!process.env.FRONTEND_URL) {
+    console.warn('FRONTEND_URL is not defined, using fallback: http://localhost:3000');
+}
+
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
