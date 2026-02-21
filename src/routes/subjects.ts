@@ -30,6 +30,7 @@ router.get('/',async (req, res) => {
         //If a department filter exists, match the department name
         if (department){
             filterConditions.push(ilike(departments.name, `%${department}%`));
+
         }
 
 
